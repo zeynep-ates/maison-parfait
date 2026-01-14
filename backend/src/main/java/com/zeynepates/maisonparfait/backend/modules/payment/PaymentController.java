@@ -17,4 +17,9 @@ public class PaymentController {
                                    @RequestParam PaymentResult result) {
         return paymentService.confirmPayment(id, result);
     }
+
+    @GetMapping("/{id}")
+    public PaymentResponse getPayment(@PathVariable UUID id) {
+        return paymentService.getPaymentById(id);
+    }
 }

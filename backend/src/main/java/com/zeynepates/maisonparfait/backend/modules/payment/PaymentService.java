@@ -4,6 +4,7 @@ import com.zeynepates.maisonparfait.backend.common.exception.ConflictException;
 import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
 import com.zeynepates.maisonparfait.backend.modules.order.Order;
 import com.zeynepates.maisonparfait.backend.modules.order.OrderInMemoryStore;
+import com.zeynepates.maisonparfait.backend.modules.order.OrderResponse;
 import com.zeynepates.maisonparfait.backend.modules.order.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,21 @@ public class PaymentService {
         }
 
         paymentStore.save(payment);
+        return new PaymentResponse(
+                payment.getId(),
+                payment.getOrderId(),
+                payment.getStatus(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getCreatedAt()
+        );
+    }
+
+    public PaymentResponse getPaymentById(UUID paymentId) {
+        Payment payment = paymentStore.findById(paymentId);
+        if (payment == null) {
+            throw new NotFoundException("Payment not found: " + paymentId);
+        }
         return new PaymentResponse(
                 payment.getId(),
                 payment.getOrderId(),

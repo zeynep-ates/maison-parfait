@@ -1,4 +1,4 @@
-package com.zeynepates.maisonparfait.backend.health;
+package com.zeynepates.maisonparfait.backend.common.health;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
