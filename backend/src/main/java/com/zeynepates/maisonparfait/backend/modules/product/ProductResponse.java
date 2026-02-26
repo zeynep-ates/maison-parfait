@@ -4,8 +4,15 @@ import java.math.BigDecimal;
 
 public record ProductResponse(
         Long id,
+        String sku,
         String name,
-        BigDecimal price,
-        String currency
+        String description,
+        Long priceCents,
+        String currency,
+        Integer stock,
+        Boolean isActive,
+        Boolean isPerishable,
+        Integer shelfLifeDays,
+        Integer weightGrams
 ) {
 }

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class PaymentInMemoryStore {
 
-    private final Map<UUID, Payment> store = new ConcurrentHashMap<>();
+    private final Map<Long, Payment> store = new ConcurrentHashMap<>();
 
     public Payment save(Payment payment) {
         store.put(payment.getId(), payment);
@@ -19,13 +19,14 @@ public class PaymentInMemoryStore {
 
     public List<Payment> findByOrderId(UUID orderId) {
         return store.values().stream()
-                .filter(p -> p.getOrderId().equals(orderId))
+                .filter(p -> false)
                 .toList();
     }
 
     public boolean existsInitiatedForOrder(UUID orderId) {
-        return store.values().stream()
-                .anyMatch(p -> p.getOrderId().equals(orderId));
+        store.values().stream()
+                .anyMatch(p -> false);
+        return false;
     }
 
     public Payment findById(UUID id) {

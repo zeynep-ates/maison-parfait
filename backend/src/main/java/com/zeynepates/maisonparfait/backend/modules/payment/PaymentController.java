@@ -13,13 +13,13 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/{id}/confirm")
-    public PaymentResponse confirm(@PathVariable UUID id,
+    public PaymentResponse confirm(@PathVariable Long id,
                                    @RequestParam PaymentResult result) {
         return paymentService.confirmPayment(id, result);
     }
 
     @GetMapping("/{id}")
-    public PaymentResponse getPayment(@PathVariable UUID id) {
+    public PaymentResponse getPayment(@PathVariable Long id) {
         return paymentService.getPaymentById(id);
     }
 }

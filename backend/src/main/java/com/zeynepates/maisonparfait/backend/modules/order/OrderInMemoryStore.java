@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class OrderInMemoryStore {
 
-    private final Map<UUID, Order> store = new ConcurrentHashMap<>();
+    private final Map<Long, Order> store = new ConcurrentHashMap<>();
 
     public Order save(Order order) {
         store.put(order.getId(), order);
@@ -28,7 +28,7 @@ public class OrderInMemoryStore {
         store.remove(id);
     }
 
-    public Map<UUID, Order> findAll() {
+    public Map<Long, Order> findAll() {
         return store;
     }
 }

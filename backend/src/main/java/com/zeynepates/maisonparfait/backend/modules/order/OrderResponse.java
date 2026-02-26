@@ -1,20 +1,18 @@
 package com.zeynepates.maisonparfait.backend.modules.order;
 
-import com.zeynepates.maisonparfait.backend.modules.shipping.ShippingAddressResponse;
+import com.zeynepates.maisonparfait.backend.modules.address.AddressResponse;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public record OrderResponse(
 
-        UUID orderId,
+        Long orderId,
         OrderStatus status,
-        BigDecimal totalAmount,
+        Long totalAmountCents,
         String currency,
-        LocalDateTime createdAt,
+        OffsetDateTime createdAt,
         List<OrderItemResponse> items,
-        ShippingAddressResponse shippingAddress
+        AddressResponse address
 ) {
 }

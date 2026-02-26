@@ -16,7 +16,7 @@ public class OrderPaymentController {
 
     @PostMapping("/{id}/payments")
     @ResponseStatus(HttpStatus.CREATED)
-    public PaymentResponse initiate(@PathVariable UUID id) {
+    public PaymentResponse initiate(@PathVariable Long id) {
         return orderPaymentService.initiatePayment(id);
     }
 }

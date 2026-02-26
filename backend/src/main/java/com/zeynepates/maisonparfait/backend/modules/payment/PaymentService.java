@@ -3,65 +3,61 @@ package com.zeynepates.maisonparfait.backend.modules.payment;
 import com.zeynepates.maisonparfait.backend.common.exception.ConflictException;
 import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
 import com.zeynepates.maisonparfait.backend.modules.order.Order;
-import com.zeynepates.maisonparfait.backend.modules.order.OrderInMemoryStore;
-import com.zeynepates.maisonparfait.backend.modules.order.OrderResponse;
 import com.zeynepates.maisonparfait.backend.modules.order.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
 
-    private final PaymentInMemoryStore paymentStore;
-    private final OrderInMemoryStore orderStore;
+    private final PaymentRepository paymentRepository;
 
-    public PaymentResponse confirmPayment(UUID paymentId, PaymentResult result) {
+    @Transactional
+    public PaymentResponse confirmPayment(Long paymentId, PaymentResult result) {
 
-        Payment payment = paymentStore.findById(paymentId);
-        if (payment == null) {
-            throw new NotFoundException("Payment not found: " + paymentId);
-        }
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
+
         if (payment.getStatus() != PaymentStatus.INITIATED) {
             throw new ConflictException("Payment cannot be confirmed in status: " + payment.getStatus());
         }
 
-        Order order = orderStore.findById(payment.getOrderId());
+        // payment -> order ilişkisinden direkt gelir
+        Order order = payment.getOrder();
         if (order == null) {
-            throw new NotFoundException("Order not found for payment: " + payment.getOrderId());
+            // normalde olmaz (DB constraint var), ama güvenlik:
+            throw new NotFoundException("Order not found for payment: " + paymentId);
         }
 
-        if (result == PaymentResult.success) {
-            payment.setStatus(PaymentStatus.SUCCESS);
+        if (result == PaymentResult.SUCCESS) {
+            payment.setStatus(PaymentStatus.SUCCEEDED);
             order.setStatus(OrderStatus.PAID);
-            orderStore.save(order);
         } else {
             payment.setStatus(PaymentStatus.FAILED);
         }
 
-        paymentStore.save(payment);
-        return new PaymentResponse(
-                payment.getId(),
-                payment.getOrderId(),
-                payment.getStatus(),
-                payment.getAmount(),
-                payment.getCurrency(),
-                payment.getCreatedAt()
-        );
+        // transactional olduğu için save şart değil ama net olsun diye:
+        paymentRepository.save(payment);
+        // orderRepository.save(order); // istersen yaz, ama dirty-checking yeter
+
+        return toResponse(payment);
     }
 
-    public PaymentResponse getPaymentById(UUID paymentId) {
-        Payment payment = paymentStore.findById(paymentId);
-        if (payment == null) {
-            throw new NotFoundException("Payment not found: " + paymentId);
-        }
+    @Transactional(readOnly = true)
+    public PaymentResponse getPaymentById(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new NotFoundException("Payment not found: " + paymentId));
+        return toResponse(payment);
+    }
+
+    private PaymentResponse toResponse(Payment payment) {
         return new PaymentResponse(
                 payment.getId(),
-                payment.getOrderId(),
+                payment.getOrder().getId(),
                 payment.getStatus(),
-                payment.getAmount(),
+                payment.getAmountCents(),
                 payment.getCurrency(),
                 payment.getCreatedAt()
         );

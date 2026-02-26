@@ -1,15 +1,11 @@
 package com.zeynepates.maisonparfait.backend.modules.payment;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 public record PaymentResponse(
-        UUID paymentId,
-        UUID orderId,
+        Long paymentId,
+        Long orderId,
         PaymentStatus status,
-        BigDecimal amount,
+        Long amountCents,
         String currency,
-        LocalDateTime createdAt
+        java.time.OffsetDateTime createdAt
 ) {
 }

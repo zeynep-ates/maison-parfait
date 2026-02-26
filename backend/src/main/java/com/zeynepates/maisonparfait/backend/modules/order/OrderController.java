@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,17 +26,17 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public OrderResponse getOrder(@PathVariable UUID id) {
+    public OrderResponse getOrder(@PathVariable Long id) {
         return orderService.getOrderById(id);
     }
 
     @PostMapping("/{id}/cancel")
-    public OrderResponse cancel(@PathVariable UUID id) {
+    public OrderResponse cancel(@PathVariable Long id) {
         return orderService.cancelOrder(id);
     }
 
     @PostMapping("/{id}/mark-payment-pending")
-    public OrderResponse markPaymentPending(@PathVariable UUID id) {
+    public OrderResponse markPaymentPending(@PathVariable Long id) {
         return orderService.markPaymentPending(id);
     }
 }
