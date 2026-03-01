@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Soft luxury background */
+body {
+  background:
+    radial-gradient(1200px 600px at 30% 10%, rgba(255,255,255,.55), transparent 60%),
+    linear-gradient(180deg, #F6E7EA 0%, #F2D7DD 55%, #FFF9F6 120%);
+  color: #2B1F22;
+}
+
+/* Very subtle noise */
+.noise {
+  position: relative;
+}
+.noise::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.02), rgba(0,0,0,.02) 1px, transparent 1px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.015), rgba(0,0,0,.015) 1px, transparent 1px, transparent 3px);
+  opacity: .18;
+  mix-blend-mode: multiply;
+}
+
+/* Hairline gold borders */
+.hairline-gold {
+  border: 1px solid rgba(201,164,106,.45);
+}
+
+/* Premium fading double rule (no star, no misalignment) */
+.section-rule {
+  width: 140px;           /* daha uzun */
+  height: 8px;
+  position: relative;
+}
+
+.section-rule::before,
+.section-rule::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201,164,106,.95),
+    transparent
+  );
+}
+
+.section-rule::before {
+  top: 0;
+  opacity: .95;
+}
+
+.section-rule::after {
+  bottom: 0;
+  opacity: .55;
+}
+
+/* Premium placeholder for square images */
+.square-photo {
+  background:
+    radial-gradient(650px 380px at 30% 18%, rgba(255,255,255,.70), transparent 58%),
+    linear-gradient(180deg, rgba(242,215,221,.78), rgba(255,249,246,.96));
+}
+
+/* Smooth scroll for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Elegant right-side dot + long fading line */
+.section-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.section-kicker__text {
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.section-kicker__dot {
+  width: 4px;          /* küçültüldü */
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(201,164,106,.95);
+  flex: 0 0 auto;
+}
+
+.section-kicker__line {
+  flex: 1;
+  height: 1px;
+  min-width: 120px;   /* daha uzun */
+  background: linear-gradient(
+    90deg,
+    rgba(201,164,106,.75) 0%,
+    rgba(201,164,106,.45) 45%,
+    rgba(201,164,106,.15) 75%,
+    rgba(201,164,106,0) 100%
+  );
+}
