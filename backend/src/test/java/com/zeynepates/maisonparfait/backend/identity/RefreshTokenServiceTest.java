@@ -1,7 +1,6 @@
 package com.zeynepates.maisonparfait.backend.identity;
 
 import com.zeynepates.maisonparfait.backend.common.exception.UnauthorizedException;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

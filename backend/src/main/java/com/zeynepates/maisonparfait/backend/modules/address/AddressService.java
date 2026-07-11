@@ -1,7 +1,7 @@
 package com.zeynepates.maisonparfait.backend.modules.address;
 
 import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
-import com.zeynepates.maisonparfait.backend.modules.user.UserRepository;
+import com.zeynepates.maisonparfait.backend.identity.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

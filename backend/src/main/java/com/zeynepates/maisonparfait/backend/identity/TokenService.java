@@ -1,6 +1,5 @@
 package com.zeynepates.maisonparfait.backend.identity;
 
-import com.zeynepates.maisonparfait.backend.modules.user.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

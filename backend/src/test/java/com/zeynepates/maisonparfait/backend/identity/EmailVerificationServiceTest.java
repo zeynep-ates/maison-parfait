@@ -1,6 +1,5 @@
 package com.zeynepates.maisonparfait.backend.identity;
 
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,13 +106,67 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void verifyRejectsWrongTokenType() {
+    void verifyRejectsPasswordResetTokenType() {
         VerificationToken token = validToken();
         token.setType(VerificationTokenType.PASSWORD_RESET);
         when(tokenGenerator.hash(any())).thenReturn("hashed-token");
         when(verificationTokenRepository.findByTokenHash("hashed-token")).thenReturn(Optional.of(token));
 
         assertThrows(IllegalArgumentException.class, () -> emailVerificationService.verify("raw-token"));
+    }
+
+    @Test
+    void verifyPromotesPendingEmailForEmailChangeToken() {
+        user.setPendingEmail("jane.new@example.com");
+        VerificationToken token = validToken();
+        token.setType(VerificationTokenType.EMAIL_CHANGE);
+        when(tokenGenerator.hash("raw-token")).thenReturn("hashed-token");
+        when(verificationTokenRepository.findByTokenHash("hashed-token")).thenReturn(Optional.of(token));
+
+        emailVerificationService.verify("raw-token");
+
+        assertThat(token.getUsedAt()).isNotNull();
+        assertThat(user.getEmail()).isEqualTo("jane.new@example.com");
+        assertThat(user.getPendingEmail()).isNull();
+        assertThat(user.getEmailVerifiedAt()).isNotNull();
+    }
+
+    @Test
+    void verifyRejectsEmailChangeWhenTargetWasClaimedByAnotherAccountInTheMeantime() {
+        user.setPendingEmail("jane.new@example.com");
+        VerificationToken token = validToken();
+        token.setType(VerificationTokenType.EMAIL_CHANGE);
+        when(tokenGenerator.hash("raw-token")).thenReturn("hashed-token");
+        when(verificationTokenRepository.findByTokenHash("hashed-token")).thenReturn(Optional.of(token));
+        // someone else registered/confirmed this exact address after the
+        // change was requested but before it was confirmed
+        when(userRepository.existsByEmailAndDeletedAtIsNull("jane.new@example.com")).thenReturn(true);
+
+        assertThrows(com.zeynepates.maisonparfait.backend.common.exception.ConflictException.class,
+                () -> emailVerificationService.verify("raw-token"));
+
+        // the user's own email is untouched and the token is not consumed,
+        // rather than silently corrupting state
+        assertThat(user.getEmail()).isEqualTo("jane@example.com");
+        assertThat(token.getUsedAt()).isNull();
+    }
+
+    @Test
+    void initiateEmailChangeSetsPendingEmailAndNotifiesBothAddresses() {
+        when(tokenGenerator.generateRawToken()).thenReturn("raw-token");
+        when(tokenGenerator.hash("raw-token")).thenReturn("hashed-token");
+
+        emailVerificationService.initiateEmailChange(user, "jane.new@example.com");
+
+        assertThat(user.getPendingEmail()).isEqualTo("jane.new@example.com");
+
+        ArgumentCaptor<VerificationToken> saved = ArgumentCaptor.forClass(VerificationToken.class);
+        verify(verificationTokenRepository).save(saved.capture());
+        assertThat(saved.getValue().getType()).isEqualTo(VerificationTokenType.EMAIL_CHANGE);
+
+        // confirmation goes to the new address, a heads-up notice to the old one
+        verify(emailSender).send(eq("jane.new@example.com"), any(), any());
+        verify(emailSender).send(eq("jane@example.com"), any(), any());
     }
 
     @Test

@@ -1,7 +1,6 @@
 package com.zeynepates.maisonparfait.backend.identity;
 
 import com.zeynepates.maisonparfait.backend.common.exception.UnauthorizedException;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -95,6 +94,20 @@ public class RefreshTokenService {
         refreshTokenRepository.findByTokenHash(tokenGenerator.hash(rawToken))
                 .filter(token -> token.getRevokedAt() == null)
                 .ifPresent(token -> token.setRevokedAt(OffsetDateTime.now()));
+    }
+
+    /**
+     * Revokes every active session for a user with no exception - unlike
+     * SessionService.revokeAllExceptCurrent, there's no "current" session to
+     * spare here. Used after a password reset, which is frequently a
+     * response to suspected compromise: every existing session should die,
+     * including the one the reset itself might have been performed from.
+     */
+    @Transactional
+    public void revokeAllForUser(Long userId) {
+        OffsetDateTime now = OffsetDateTime.now();
+        refreshTokenRepository.findAllByUser_IdAndRevokedAtIsNullAndExpiresAtAfter(userId, now)
+                .forEach(token -> token.setRevokedAt(now));
     }
 
     private void revokeChainForward(RefreshToken start) {

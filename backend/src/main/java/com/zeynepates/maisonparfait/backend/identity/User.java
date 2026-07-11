@@ -1,4 +1,4 @@
-package com.zeynepates.maisonparfait.backend.modules.user;
+package com.zeynepates.maisonparfait.backend.identity;
 
 import com.zeynepates.maisonparfait.backend.common.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -13,15 +13,11 @@ import lombok.Setter;
 import java.time.OffsetDateTime;
 
 /**
- * Temporarily stays in modules.user - see docs/identity-module-design.md.
- * The identity module reuses this entity as-is rather than mapping a second
- * class onto the same "users" table; this class moves to the identity
- * package (and other modules' imports get updated) in Phase 1F.
- *
- * email uniqueness is enforced by a partial unique index in V8 (excludes
- * soft-deleted rows), not by @Column(unique = true) - ddl-auto is
- * "validate", so that annotation would have no schema effect and would
- * misdescribe the real constraint if left on.
+ * Maps to the "users" table. email uniqueness is enforced by a partial
+ * unique index in V8 (excludes soft-deleted rows), not by
+ * @Column(unique = true) - ddl-auto is "validate", so that annotation
+ * would have no schema effect and would misdescribe the real constraint
+ * if left on.
  */
 @Getter
 @Setter

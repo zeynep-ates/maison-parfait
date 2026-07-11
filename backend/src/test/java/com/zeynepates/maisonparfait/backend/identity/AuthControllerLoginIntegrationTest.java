@@ -125,6 +125,36 @@ class AuthControllerLoginIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void loginIsRateLimitedAfterRepeatedFailures() throws Exception {
+        String email = "ratelimit-" + System.nanoTime() + "@example.com";
+        registerUser(email, "password123", "Rate Limit Test");
+        LoginRequest wrongPassword = new LoginRequest(email, "not-the-password", false);
+
+        // the RateLimiter's 5-attempt budget is per IP+email; five wrong
+        // attempts here are all genuine 401s, not yet rate limited
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(wrongPassword)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        // the 6th attempt is blocked by the rate limiter itself, even
+        // though the credentials would otherwise just be another 401
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(wrongPassword)))
+                .andExpect(status().isTooManyRequests());
+
+        // the correct password is blocked too - the limiter acts before
+        // credentials are even checked
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest(email, "password123", false))))
+                .andExpect(status().isTooManyRequests());
+    }
+
     private void registerUser(String email, String password, String fullName) throws Exception {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

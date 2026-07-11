@@ -223,26 +223,25 @@ Low-stock is a plain `quantity_on_hand <= low_stock_threshold` check, exposed as
 
 ## 8. Implementation roadmap
 
-Each phase: build the new module fully (entities, migrations, service, controller, tests) → wire it in → verify it works end to end → delete the legacy package(s) it replaces. Dependency order, not arbitrary:
+Each phase: build the new module fully (entities, migrations, service, controller, tests) → wire it in → verify it works end to end → delete the legacy package(s) it replaces → **build/wire the frontend pages that phase unblocks, against the real API, before moving to the next phase.** Frontend work is no longer batched into one final phase — it's interleaved per backend module, since waiting until everything is done to see anything working end to end just delays feedback for no benefit. The visual design (layouts, colors, typography, components already in `frontend/src`) is untouched throughout; only new pages and real data wiring are added. Dependency order below is not arbitrary:
 
-| Phase | Module | Deletes | Why this order |
-|---|---|---|---|
-| 0 | Foundation: Spring Modulith, `common` rebuild (JPA auditing, `CurrentUser`, ownership bean) | — | Everything else depends on this existing first |
-| 1 | `identity` | `auth`, `user` | Nearly every other module references a user; must be stable before building on top of it. The `users` table id/shape stays compatible during this phase so legacy `order`/`address`/`payment` (not yet rewritten) keep compiling against the new `User` class via updated imports only — no simultaneous rewrite of unrelated modules forced by this phase |
-| 2 | `catalog` | `product`, `category`, `tag` | Independent of everything except identity (for `created_by`/`updated_by`); needed before cart/order can reference real products |
-| 3 | `inventory` | — (new) | Needs `catalog` to exist; must exist before checkout/order can reserve stock |
-| 4 | `cart` | — (new) | Needs `catalog` + `inventory` |
-| 5 | `order` + `pricing` | `order` | Needs `cart`, `inventory`, `identity` |
-| 6 | `payment` | `payment` | Needs `order`; also removes the temporary Stage-1 `hasRole("ADMIN")` lockdown on `/payments/**`, superseded by real webhook verification |
-| 7 | `shipping` | — (new) | Needs `order` |
-| 8 | `review`, `wishlist` | — (new) | Independent of each other, can run in either order; need `catalog` + `identity` |
-| 9 | `notification` | — (new) | Wires in via events published from already-rebuilt modules — additive, doesn't require revisiting them |
-| 10 | `admin` | `admin` | Cross-cutting by definition, so it comes last — it reads from every module above |
-| 11 | Frontend integration | — | Router mount, auth pages, product listing/detail, cart, checkout — visual design untouched throughout |
+| Phase | Module | Deletes | Frontend slice unblocked | Why this order |
+|---|---|---|---|---|
+| 0 | Foundation: Spring Modulith, `common` rebuild (JPA auditing, `CurrentUser`, ownership bean) | — | — | Everything else depends on this existing first |
+| 1 | `identity` | `auth`, `user` | Login, register, account/profile pages, wired to the real `/api/auth/*` and `/api/users/me*` endpoints | Nearly every other module references a user; must be stable before building on top of it. The `users` table id/shape stays compatible during this phase so legacy `order`/`address`/`payment` (not yet rewritten) keep compiling against the new `User` class via updated imports only — no simultaneous rewrite of unrelated modules forced by this phase |
+| 2 | `catalog` | `product`, `category`, `tag` | Product listing and product detail pages, replacing `Home.jsx`'s hardcoded product/collection arrays with real API data | Independent of everything except identity (for `created_by`/`updated_by`); needed before cart/order can reference real products |
+| 3 | `inventory` | — (new) | Stock/availability state on the product detail page (in stock / low stock / sold out) | Needs `catalog` to exist; must exist before checkout/order can reserve stock |
+| 4 | `cart` | — (new) | Cart page/drawer, wired to real add/update/remove | Needs `catalog` + `inventory` |
+| 5 | `order` + `pricing` | `order` | Checkout flow (address, coupon entry, order summary) | Needs `cart`, `inventory`, `identity` |
+| 6 | `payment` | `payment` | Payment step of checkout against the real provider flow; also removes the temporary Stage-1 `hasRole("ADMIN")` lockdown on `/payments/**`, superseded by real webhook verification | Needs `order`; |
+| 7 | `shipping` | — (new) | Shipping method selection at checkout, order tracking view | Needs `order` |
+| 8 | `review`, `wishlist` | — (new) | Product reviews section, wishlist page/toggle | Independent of each other, can run in either order; need `catalog` + `identity` |
+| 9 | `notification` | — (new) | Notification preferences UI (if any is needed beyond backend defaults) | Wires in via events published from already-rebuilt modules — additive, doesn't require revisiting them |
+| 10 | `admin` | `admin` | Not customer-facing — no `frontend/` change; a separate admin UI is a future decision, not part of this roadmap | Cross-cutting by definition, so it comes last — it reads from every module above |
 
-At the end of phase 10, the entire legacy `modules/*` tree from before this rebuild no longer exists — everything left is one of the 13 modules above. That's also the point where the Flyway history gets squashed to a single clean baseline, per §0.
+At the end of phase 10, the entire legacy `modules/*` tree from before this rebuild no longer exists — everything left is one of the 13 backend modules above, each with its corresponding frontend slice already wired in along the way rather than deferred. That's also the point where the Flyway history gets squashed to a single clean baseline, per §0.
 
-Each phase is further broken into small steps when we get there (the same granularity as the Stage 1 work already done), not delivered as one large PR.
+Each phase (backend and its frontend slice both) is further broken into small steps when we get there (the same granularity as the Stage 1 work already done), not delivered as one large PR.
 
 ---
 

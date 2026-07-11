@@ -1,7 +1,7 @@
 package com.zeynepates.maisonparfait.backend.modules.address;
 
+import com.zeynepates.maisonparfait.backend.identity.User;
 import com.zeynepates.maisonparfait.backend.modules.common.entity.BaseEntity;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

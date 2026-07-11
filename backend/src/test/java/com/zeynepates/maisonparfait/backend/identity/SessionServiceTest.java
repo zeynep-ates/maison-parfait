@@ -3,7 +3,6 @@ package com.zeynepates.maisonparfait.backend.identity;
 import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
 import com.zeynepates.maisonparfait.backend.identity.dto.SessionResponse;
 import com.zeynepates.maisonparfait.backend.identity.mapper.SessionMapper;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

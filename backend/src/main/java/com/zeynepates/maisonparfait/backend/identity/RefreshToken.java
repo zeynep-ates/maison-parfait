@@ -1,7 +1,6 @@
 package com.zeynepates.maisonparfait.backend.identity;
 
 import com.zeynepates.maisonparfait.backend.common.entity.BaseEntity;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

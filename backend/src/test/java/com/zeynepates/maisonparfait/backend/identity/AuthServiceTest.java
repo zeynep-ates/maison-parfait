@@ -2,13 +2,13 @@ package com.zeynepates.maisonparfait.backend.identity;
 
 import com.zeynepates.maisonparfait.backend.common.exception.ConflictException;
 import com.zeynepates.maisonparfait.backend.common.exception.ForbiddenException;
+import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
 import com.zeynepates.maisonparfait.backend.common.exception.UnauthorizedException;
+import com.zeynepates.maisonparfait.backend.identity.dto.ChangePasswordRequest;
 import com.zeynepates.maisonparfait.backend.identity.dto.LoginRequest;
 import com.zeynepates.maisonparfait.backend.identity.dto.RegisterRequest;
 import com.zeynepates.maisonparfait.backend.identity.dto.UserResponse;
 import com.zeynepates.maisonparfait.backend.identity.mapper.UserMapper;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
-import com.zeynepates.maisonparfait.backend.modules.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,6 +50,9 @@ class AuthServiceTest {
 
     @Mock
     RefreshTokenService refreshTokenService;
+
+    @Mock
+    SessionService sessionService;
 
     @InjectMocks
     AuthService authService;
@@ -188,6 +191,64 @@ class AuthServiceTest {
         authService.logout("raw-token");
 
         verify(refreshTokenService).revoke("raw-token");
+    }
+
+    @Test
+    void changePasswordUpdatesHashAndRevokesOtherSessions() {
+        User user = activeUser();
+        ChangePasswordRequest request = new ChangePasswordRequest("password123", "newPassword456");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "hashed-password")).thenReturn(true);
+        when(passwordEncoder.encode("newPassword456")).thenReturn("new-hashed-password");
+
+        authService.changePassword(1L, request, "raw-current-token");
+
+        assertThat(user.getPasswordHash()).isEqualTo("new-hashed-password");
+        verify(sessionService).revokeAllExceptCurrent(1L, "raw-current-token");
+    }
+
+    @Test
+    void changePasswordRejectsWrongCurrentPassword() {
+        User user = activeUser();
+        ChangePasswordRequest request = new ChangePasswordRequest("wrong-current", "newPassword456");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong-current", "hashed-password")).thenReturn(false);
+
+        assertThrows(UnauthorizedException.class, () -> authService.changePassword(1L, request, "raw-current-token"));
+
+        verifyNoInteractions(sessionService);
+    }
+
+    @Test
+    void changePasswordThrowsNotFoundForUnknownUser() {
+        ChangePasswordRequest request = new ChangePasswordRequest("password123", "newPassword456");
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> authService.changePassword(99L, request, "raw-current-token"));
+    }
+
+    @Test
+    void changeEmailDelegatesToEmailVerificationServiceWhenNewEmailIsFree() {
+        User user = activeUser();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmailAndDeletedAtIsNull("jane.new@example.com")).thenReturn(false);
+
+        authService.changeEmail(1L, "jane.new@example.com");
+
+        verify(emailVerificationService).initiateEmailChange(user, "jane.new@example.com");
+    }
+
+    @Test
+    void changeEmailRejectsAlreadyRegisteredNewEmail() {
+        User user = activeUser();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmailAndDeletedAtIsNull("taken@example.com")).thenReturn(true);
+
+        assertThrows(ConflictException.class, () -> authService.changeEmail(1L, "taken@example.com"));
+
+        verifyNoInteractions(emailVerificationService);
     }
 
     private User activeUser() {

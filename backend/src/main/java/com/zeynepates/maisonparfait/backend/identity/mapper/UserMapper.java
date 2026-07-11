@@ -1,7 +1,7 @@
 package com.zeynepates.maisonparfait.backend.identity.mapper;
 
+import com.zeynepates.maisonparfait.backend.identity.User;
 import com.zeynepates.maisonparfait.backend.identity.dto.UserResponse;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

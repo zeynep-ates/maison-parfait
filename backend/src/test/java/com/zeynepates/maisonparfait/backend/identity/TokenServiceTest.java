@@ -1,6 +1,5 @@
 package com.zeynepates.maisonparfait.backend.identity;
 
-import com.zeynepates.maisonparfait.backend.modules.user.UserRole;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

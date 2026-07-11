@@ -2,14 +2,14 @@ package com.zeynepates.maisonparfait.backend.identity;
 
 import com.zeynepates.maisonparfait.backend.common.exception.ConflictException;
 import com.zeynepates.maisonparfait.backend.common.exception.ForbiddenException;
+import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
 import com.zeynepates.maisonparfait.backend.common.exception.UnauthorizedException;
+import com.zeynepates.maisonparfait.backend.identity.dto.ChangePasswordRequest;
 import com.zeynepates.maisonparfait.backend.identity.dto.LoginRequest;
 import com.zeynepates.maisonparfait.backend.identity.dto.RegisterRequest;
 import com.zeynepates.maisonparfait.backend.identity.dto.TokenResponse;
 import com.zeynepates.maisonparfait.backend.identity.dto.UserResponse;
 import com.zeynepates.maisonparfait.backend.identity.mapper.UserMapper;
-import com.zeynepates.maisonparfait.backend.modules.user.User;
-import com.zeynepates.maisonparfait.backend.modules.user.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +36,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final TokenService tokenService;
     private final RefreshTokenService refreshTokenService;
+    private final SessionService sessionService;
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
@@ -102,6 +103,40 @@ public class AuthService {
     @Transactional
     public void logout(String rawRefreshToken) {
         refreshTokenService.revoke(rawRefreshToken);
+    }
+
+    /**
+     * Requires the current password. Revokes every other active session -
+     * the calling session (identified by its own refresh token) is left
+     * alone, since there's no compromise signal here, just a routine
+     * credential change.
+     */
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request, String currentRawRefreshToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new UnauthorizedException("Current password is incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        sessionService.revokeAllExceptCurrent(userId, currentRawRefreshToken);
+    }
+
+    /**
+     * Doesn't change the email yet - see EmailVerificationService.initiateEmailChange.
+     */
+    @Transactional
+    public void changeEmail(Long userId, String newEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+
+        if (userRepository.existsByEmailAndDeletedAtIsNull(newEmail)) {
+            throw new ConflictException("Email already registered");
+        }
+
+        emailVerificationService.initiateEmailChange(user, newEmail);
     }
 
     /**

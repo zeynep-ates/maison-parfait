@@ -1,7 +1,7 @@
 # Identity Module — Design Document
 
-Status: **approved, incorporating review feedback — ready for implementation**
-Replaces: `modules/auth`, `modules/user` (deleted once this lands, per the roadmap in [backend-architecture.md](backend-architecture.md))
+Status: **implemented (phases 1A–1F complete)** — see §14 for how the final module differs from what's designed below
+Replaced: `modules/auth` (deleted), `modules/user` (moved into `identity`, see §14)
 Depends on: `common` only (one direction — see §2 for why that matters)
 
 ---
@@ -387,8 +387,24 @@ Roles stay `CUSTOMER`/`ADMIN` (unchanged from legacy), enforced via `hasRole(...
 
 ---
 
-## 13. Open decisions worth confirming before I implement
+## 13. Open decisions from the original design — resolved
 
-1. **Email sending for v1**: `EmailSender` interface with a `LoggingEmailSender` (logs the verification/reset/change link instead of sending real email) — good enough to build and test every flow now, real SMTP/provider integration deferred to the `notification` module (Phase 9). Confirm this is acceptable rather than wiring real email now.
-2. **`fullName` required at registration**: adds one required field to the signup form beyond email/password. Confirm the frontend registration form (not built yet) should collect it, since it's used in verification/reset/change email greetings.
-3. **Rate limiting scope**: in-memory only, three endpoints (login, forgot-password, resend-verification). Confirm that's sufficient for now versus wanting it on more endpoints (e.g. register, to blunt account-creation spam, or change-email) — a cheap addition either way, no new dependency required.
+1. **Email sending for v1**: built as designed — `EmailSender` interface, `LoggingEmailSender` the only implementation. Real SMTP/provider integration is still deferred to the `notification` module (Phase 9).
+2. **`fullName` required at registration**: built as designed, unchanged.
+3. **Rate limiting scope**: built as designed — in-memory `RateLimiter`, three endpoints (login, forgot-password, resend-verification), keyed by IP+email rather than email alone (see §14).
+
+---
+
+## 14. Implementation notes — how the final module differs from this design
+
+This section exists because the design above was written before implementation, across several milestones (1A–1F), each separately reviewed and adjusted. Rather than silently editing history into every section above, the real deviations are collected here.
+
+- **JWT claims are narrower than originally drafted.** §6 as written here already reflects the final decision (`sub` + `role` only), but the very first draft of this doc included an `emailVerified` claim — dropped during Phase 1C review as mutable profile data that doesn't belong in an access token. If you're comparing against an earlier read of this file, that's the change.
+- **`RefreshToken` gained a `rememberMe` column** not in the original §3/§11 sketch. Needed so rotation can preserve a "remember me" session's longer TTL across refreshes — without it, remember-me would silently degrade to the standard 7-day window after the first token rotation, defeating its purpose.
+- **The `deletedAt` check in `login()` was removed as dead code.** `findByEmailAndDeletedAtIsNull` already excludes soft-deleted accounts at the query level, so a redundant `if (user.getDeletedAt() != null)` after it could never execute. The repository-level filter is the actual guarantee; §3's login-ordering description is still accurate, just enforced one layer lower than first drafted.
+- **`modules.user.User` was reused in place, not duplicated.** The original §3 assumed a fresh `identity.User` mapped onto the existing `users` table. Reviewed and corrected before Phase 1A landed: two JPA entities mapped to one table was judged an avoidable source of confusion during the transition. The legacy entity was evolved in place (gained `enabled`/`lockedAt`/`pendingEmail`/`deletedAt`/audit fields, switched to the new `BaseEntity`) and only physically moved into `identity` at the end, in Phase 1F, once nothing else needed updating at the same time.
+- **`legacy modules/auth` was deleted outright, not left running.** Once `identity`'s own login/JWT validation replaced `common.config.SecurityConfig`/`JwtAuthFilter`, the legacy `/auth/login` endpoint would have kept responding 200 while issuing tokens nothing could validate — an endpoint that looks functional but silently isn't. Deleted rather than stubbed once this was flagged, ahead of the original "delete in 1F" schedule.
+- **`EmailVerificationService.verify()` re-validates the target email at *confirmation* time, not just at request time**, for `EMAIL_CHANGE` tokens. Found during the Phase 1F security review: without it, someone else registering the exact pending address in the window between "change requested" and "change confirmed" would hit the partial unique index and surface as a raw 500 instead of a clear `409`.
+- **`TooManyRequestsException` lives in `common.exception`**, not `identity`, mirroring `ConflictException`/`NotFoundException` — rate limiting is a generic HTTP concern any future module (checkout abuse, coupon-guessing) could reuse, not identity-specific.
+- **Rate limiting is keyed by `action:ip:email`**, not email alone — harder to weaponize as a griefing vector against a specific victim's address from an unrelated source.
+- **Known, accepted limitation, not fixed**: if a user has two *unconfirmed* `EMAIL_CHANGE` tokens outstanding at once (a second `change-email` request before confirming the first), confirming the older token completes whatever the *current* `pendingEmail` is, not the address that specific token was originally issued for. Self-inflicted and same-account-only — no cross-user leak — so it wasn't judged worth a schema change (a "target email" column on `verification_tokens`, or invalidating superseded tokens) for how unlikely the flow is.
