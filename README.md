@@ -6,18 +6,15 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-> Maison Parfait is a fictional brand built as a personal portfolio project — a from-scratch, full-stack e-commerce rebuild used to practice modular backend architecture and phased, production-style frontend delivery. It's not a real business and isn't intended for public or commercial use.
-
-E-commerce platform for a premium French patisserie. The backend is being rebuilt from scratch as a modular monolith, module by module, replacing an earlier prototype; the frontend follows the same phased approach, with each module's UI wired up once its backend lands.
+> **Maison Parfait** is a fictional French patisserie e-commerce platform — a personal portfolio project built to practice production-style, full-stack delivery: a modular-monolith backend rebuilt phase by phase, with a matching frontend slice shipped alongside each phase. It's not a real business and isn't intended for public or commercial use.
 
 ## Preview
 
-<table>
-  <tr>
-    <td><img src="docs/screenshots/home-1.png" alt="Home page hero section"></td>
-    <td><img src="docs/screenshots/home-2.png" alt="Featured products and collections"></td>
-  </tr>
-</table>
+![Home page hero section](docs/screenshots/home-1.png)
+*Hero section*
+
+![Featured products and collections](docs/screenshots/home-2.png)
+*Featured products and collections*
 
 ## Stack
 
@@ -51,10 +48,6 @@ flowchart LR
 ```
 
 ### Status
-
-The **identity** module is complete on both ends. Backend: registration, email verification, login, JWT access tokens, refresh token rotation with reuse detection, per-device session management, forgot/reset/change password, email change, and basic rate limiting on the abuse-prone endpoints. Frontend: Login, Register, and Account pages wired to the real API, plus the email verification, forgot-password, and reset-password flows - all in the same visual design system as the original Home page.
-
-The frontend also carries roadmap placeholders for not-yet-built modules (search, wishlist, cart) so the navigation and product cards already show where those features will live; they currently surface a "coming soon" toast instead of navigating anywhere. The cart icon's item count is real and persisted (`localStorage`), ready to be wired to an actual cart page once Phase 4 (Cart) lands.
 
 | Phase | Module              | Backend    | Frontend   |
 | ----- | -------------------- | ---------- | ---------- |
@@ -108,6 +101,14 @@ cd backend
 ./mvnw test                        # unit tests
 ./mvnw verify                      # includes Testcontainers-backed integration tests; requires Docker
 ```
+
+## Author
+
+**Zeynep Ateş**<br>
+Backend Developer<br>
+Java • Spring Boot • React • AI Systems
+
+[GitHub](https://github.com/zeynep-ates)
 
 ## License
 
