@@ -80,6 +80,17 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Thin fading gold rule used under the footer brand blurb */
+.motif-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(201,164,106,.9) 0%,
+    rgba(201,164,106,.35) 60%,
+    rgba(201,164,106,0) 100%
+  );
+}
+
 /* Elegant right-side dot + long fading line */
 .section-kicker {
   display: flex;

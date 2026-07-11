@@ -1,6 +1,6 @@
 # Maison Parfait
 
-E-commerce platform for a premium French patisserie. The frontend is a finished, deliberately-designed React storefront; the backend is being rebuilt from scratch as a modular monolith, module by module, replacing an earlier prototype.
+E-commerce platform for a premium French patisserie. The backend is being rebuilt from scratch as a modular monolith, module by module, replacing an earlier prototype; the frontend follows the same phased approach, with each module's UI wired up once its backend lands.
 
 ## Stack
 
@@ -17,7 +17,11 @@ The backend is a modular monolith rebuilt one module at a time, with each new mo
 
 ### Status
 
-The **identity** module is complete: registration, email verification, login, JWT access tokens, refresh token rotation with reuse detection, per-device session management, forgot/reset/change password, email change, and basic rate limiting on the abuse-prone endpoints. Every other domain module (catalog, cart, order, payment, shipping, etc.) is not yet rebuilt - see the roadmap in `docs/backend-architecture.md` for what's next. The frontend still has only the static Home page; wiring it to the identity API (login/register/account pages) is the next step before Catalog begins.
+The **identity** module is complete on both ends. Backend: registration, email verification, login, JWT access tokens, refresh token rotation with reuse detection, per-device session management, forgot/reset/change password, email change, and basic rate limiting on the abuse-prone endpoints. Frontend: Login, Register, and Account pages wired to the real API, plus the email verification, forgot-password, and reset-password flows - all in the same visual design system as the original Home page.
+
+The frontend also carries roadmap placeholders for not-yet-built modules (search, wishlist, cart) so the navigation and product cards already show where those features will live; they currently surface a "coming soon" toast instead of navigating anywhere. The cart icon's item count is real and persisted (`localStorage`), ready to be wired to an actual cart page once Phase 4 (Cart) lands.
+
+Every other domain module (catalog, cart, order, payment, shipping, etc.) is not yet rebuilt - see the roadmap in `docs/backend-architecture.md` for what's next. **Catalog** is next up on both backend and frontend.
 
 ## Running locally
 
@@ -42,9 +46,12 @@ API docs (Swagger UI) once running: `http://localhost:8080/swagger-ui.html`
 
 ```bash
 cd frontend
+cp .env.example .env               # sets VITE_API_URL=http://localhost:8080
 npm install
 npm run dev                        # http://localhost:5173
 ```
+
+The backend's default dev CORS config already allows `http://localhost:5173`, so no extra setup is needed there.
 
 ### Tests
 
