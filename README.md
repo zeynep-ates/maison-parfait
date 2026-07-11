@@ -17,7 +17,7 @@ The backend is a modular monolith rebuilt one module at a time, with each new mo
 
 ### Status
 
-The **identity** module (registration, email verification, login, JWT access tokens, refresh token rotation with reuse detection, per-device session management) is implemented. Password reset, email change, and every other domain module (catalog, cart, order, payment, shipping, etc.) are not yet rebuilt - see the roadmap in `docs/backend-architecture.md` for what's next.
+The **identity** module is complete: registration, email verification, login, JWT access tokens, refresh token rotation with reuse detection, per-device session management, forgot/reset/change password, email change, and basic rate limiting on the abuse-prone endpoints. Every other domain module (catalog, cart, order, payment, shipping, etc.) is not yet rebuilt - see the roadmap in `docs/backend-architecture.md` for what's next. The frontend still has only the static Home page; wiring it to the identity API (login/register/account pages) is the next step before Catalog begins.
 
 ## Running locally
 
