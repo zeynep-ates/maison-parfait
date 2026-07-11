@@ -1,6 +1,10 @@
 package com.zeynepates.maisonparfait.backend.modules.product;
 
 import com.zeynepates.maisonparfait.backend.modules.common.entity.BaseEntity;
+import com.zeynepates.maisonparfait.backend.modules.product.category.ProductCategory;
+import com.zeynepates.maisonparfait.backend.modules.product.image.ProductImage;
+import com.zeynepates.maisonparfait.backend.modules.product.tag.ProductTag;
+import com.zeynepates.maisonparfait.backend.modules.product.variant.ProductVariant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,7 +56,15 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
+    private List<ProductTag> productTags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<ProductVariant> variants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<ProductCategory> productCategories = new ArrayList<>();
 
     public void addImage(ProductImage image) {
         images.add(image);
@@ -67,5 +79,25 @@ public class Product extends BaseEntity {
     public void removeVariant(ProductVariant variant) {
         variants.remove(variant);
         variant.setProduct(null);
+    }
+
+    public void addTag(ProductTag pt) {
+        productTags.add(pt);
+        pt.setProduct(this);
+    }
+
+    public void removeTag(ProductTag pt) {
+        productTags.remove(pt);
+        pt.setProduct(null);
+    }
+
+    public void addCategory(ProductCategory pc) {
+        productCategories.add(pc);
+        pc.setProduct(this);
+    }
+
+    public void removeCategory(ProductCategory pc) {
+        productCategories.remove(pc);
+        pc.setProduct(null);
     }
 }

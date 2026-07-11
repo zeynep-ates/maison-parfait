@@ -2,7 +2,7 @@ package com.zeynepates.maisonparfait.backend.modules.order;
 
 import com.zeynepates.maisonparfait.backend.modules.common.entity.BaseEntity;
 import com.zeynepates.maisonparfait.backend.modules.product.Product;
-import com.zeynepates.maisonparfait.backend.modules.product.ProductVariant;
+import com.zeynepates.maisonparfait.backend.modules.product.variant.ProductVariant;
 import jakarta.persistence.*;
 import lombok.*;
 

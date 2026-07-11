@@ -2,6 +2,12 @@ package com.zeynepates.maisonparfait.backend.modules.product;
 
 import com.zeynepates.maisonparfait.backend.common.exception.ConflictException;
 import com.zeynepates.maisonparfait.backend.common.exception.NotFoundException;
+import com.zeynepates.maisonparfait.backend.modules.product.category.CategoryResponse;
+import com.zeynepates.maisonparfait.backend.modules.product.category.ProductCategory;
+import com.zeynepates.maisonparfait.backend.modules.product.image.ProductImageResponse;
+import com.zeynepates.maisonparfait.backend.modules.product.tag.ProductTag;
+import com.zeynepates.maisonparfait.backend.modules.product.tag.TagResponse;
+import com.zeynepates.maisonparfait.backend.modules.product.variant.ProductVariantResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +43,15 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductResponse get(Long id, boolean onlyActive) {
-        return toResponse(findOrThrow(id, onlyActive));
+
+        Product p = productRepository.findByIdWithImagesAndTags(id)
+                .orElseThrow(() -> new NotFoundException("Product not found: " + id));
+
+        if (onlyActive && !Boolean.TRUE.equals(p.getIsActive())) {
+            throw new NotFoundException("Product not found: " + id);
+        }
+
+        return toResponse(p);
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +71,9 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductResponse> list(Boolean active, Pageable pageable) {
+
         Page<Product> page;
+
         if (active == null) page = productRepository.findAll(pageable);
         else if (active) page = productRepository.findAllByIsActiveTrue(pageable);
         else page = productRepository.findAllByIsActiveFalse(pageable);
@@ -98,8 +114,32 @@ public class ProductService {
         p.setIsActive(false);
     }
 
-
     private ProductResponse toResponse(Product p) {
+
+        var images = p.getImages().stream()
+                .sorted((a, b) -> {
+                    int cmp = Integer.compare(a.getSortOrder(), b.getSortOrder());
+                    if (cmp != 0) return cmp;
+                    return Long.compare(a.getId(), b.getId());
+                })
+                .map(ProductImageResponse::from)
+                .toList();
+
+        var tags = p.getProductTags().stream()
+                .map(ProductTag::getTag)
+                .map(TagResponse::from)
+                .toList();
+
+        var categories = p.getProductCategories().stream()
+                .map(ProductCategory::getCategory)
+                .map(CategoryResponse::from)
+                .toList();
+
+        var variants = p.getVariants().stream()
+                .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
+                .map(ProductVariantResponse::from)
+                .toList();
+
         return new ProductResponse(
                 p.getId(),
                 p.getSku(),
@@ -111,7 +151,11 @@ public class ProductService {
                 p.getIsActive(),
                 p.getIsPerishable(),
                 p.getShelfLifeDays(),
-                p.getWeightGrams()
+                p.getWeightGrams(),
+                images,
+                tags,
+                categories,
+                variants
         );
     }
 }

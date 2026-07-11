@@ -1,4 +1,22 @@
 services:
+  backend:
+    build:
+      context: .
+    container_name: maisonparfait-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://postgres:5432/maisonparfait
+      DB_USERNAME: zeynepates
+      DB_PASSWORD: "123456"
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-very-long-secret-at-least-32-chars}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:16
     container_name: maisonparfait-postgres
@@ -24,3 +42,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:
