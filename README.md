@@ -6,7 +6,18 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-> **Maison Parfait** is a fictional French patisserie e-commerce platform — a personal portfolio project built to practice production-style, full-stack delivery: a modular-monolith backend rebuilt phase by phase, with a matching frontend slice shipped alongside each phase. It's not a real business and isn't intended for public or commercial use.
+> **Maison Parfait** is a fictional French patisserie e-commerce platform — a personal portfolio project for practicing production-style, full-stack delivery. The backend is a modular monolith built one phase at a time, with a matching frontend slice shipped alongside each phase. It's not a real business and isn't intended for public or commercial use.
+
+## Contents
+
+- [Preview](#preview)
+- [Stack](#stack)
+- [Architecture](#architecture)
+- [Status](#status)
+- [Running locally](#running-locally)
+- [Tests](#tests)
+- [Author](#author)
+- [License](#license)
 
 ## Preview
 
@@ -18,18 +29,20 @@
 
 ## Stack
 
-- **Backend**: Spring Boot 4.1.0, Java 21, PostgreSQL, Flyway, Spring Security, JWT, Spring Modulith, MapStruct, Testcontainers
-- **Frontend**: React 19, Vite, Tailwind CSS
-- **Infra**: Docker Compose (Postgres, pgAdmin, backend)
+| Layer    | Technologies                                                                                      |
+| -------- | --------------------------------------------------------------------------------------------------|
+| Backend  | Spring Boot 4.1.0, Java 21, PostgreSQL, Flyway, Spring Security, JWT, Spring Modulith, MapStruct, Testcontainers |
+| Frontend | React 19, Vite, Tailwind CSS                                                                       |
+| Infra    | Docker Compose (Postgres, pgAdmin, backend)                                                        |
 
 ## Architecture
 
-The backend is a modular monolith rebuilt one module at a time, with each new module fully replacing its legacy counterpart before the old code is deleted. Full design decisions and rationale live in:
+The backend is built one module at a time, with each module completed and stabilized before the next one starts. Full design decisions and rationale live in:
 
-- [`docs/backend-architecture.md`](docs/backend-architecture.md) - overall module map, database design, payment/shipping abstractions, and the phased rebuild roadmap
-- [`docs/identity-module-design.md`](docs/identity-module-design.md) - authentication, sessions, and token design for the identity module
+- [`docs/backend-architecture.md`](docs/backend-architecture.md) — overall module map, database design, payment/shipping abstractions, and the phased roadmap
+- [`docs/identity-module-design.md`](docs/identity-module-design.md) — authentication, sessions, and token design for the identity module
 
-Module dependency flow:
+**Module dependency flow:**
 
 ```mermaid
 flowchart LR
@@ -47,24 +60,30 @@ flowchart LR
     I --> J
 ```
 
-### Status
+## Status
 
-| Phase | Module              | Backend    | Frontend   |
-| ----- | -------------------- | ---------- | ---------- |
-| 1     | Identity              | ✅ Done    | ✅ Done    |
-| 2     | Catalog                | 🚧 Next    | 🚧 Next    |
-| 3     | Inventory              | ⬜ Planned | ⬜ Planned |
-| 4     | Cart                    | ⬜ Planned | ⬜ Planned |
-| 5     | Order + Pricing        | ⬜ Planned | ⬜ Planned |
-| 6     | Payment                | ⬜ Planned | ⬜ Planned |
-| 7     | Shipping                | ⬜ Planned | ⬜ Planned |
-| 8     | Review + Wishlist      | ⬜ Planned | ⬜ Planned |
-| 9     | Notification            | ⬜ Planned | ⬜ Planned |
-| 10    | Admin                    | ⬜ Planned | ⬜ Planned |
+| Phase | Module             | Backend    | Frontend   |
+| ----- | ------------------ | ---------- | ---------- |
+| 1     | Identity            | ✅ Done    | ✅ Done    |
+| 2     | Catalog             | 🚧 Next    | 🚧 Next    |
+| 3     | Inventory           | ⬜ Planned | ⬜ Planned |
+| 4     | Cart                | ⬜ Planned | ⬜ Planned |
+| 5     | Order + Pricing     | ⬜ Planned | ⬜ Planned |
+| 6     | Payment             | ⬜ Planned | ⬜ Planned |
+| 7     | Shipping            | ⬜ Planned | ⬜ Planned |
+| 8     | Review + Wishlist   | ⬜ Planned | ⬜ Planned |
+| 9     | Notification        | ⬜ Planned | ⬜ Planned |
+| 10    | Admin               | ⬜ Planned | ⬜ Planned |
 
-See `docs/backend-architecture.md` for the full rationale behind each phase.
+See [`docs/backend-architecture.md`](docs/backend-architecture.md) for the full rationale behind each phase.
 
 ## Running locally
+
+### Prerequisites
+
+- Java 21
+- Node.js 18+
+- Docker (for Postgres and/or the full stack)
 
 ### Backend + database
 
@@ -94,7 +113,7 @@ npm run dev                        # http://localhost:5173
 
 The backend's default dev CORS config already allows `http://localhost:5173`, so no extra setup is needed there.
 
-### Tests
+## Tests
 
 ```bash
 cd backend
@@ -104,12 +123,12 @@ cd backend
 
 ## Author
 
-**Zeynep Ateş**<br>
-Backend Developer<br>
+**Zeynep Ateş**  
+Backend Developer  
 Java • Spring Boot • React • AI Systems
 
 [GitHub](https://github.com/zeynep-ates)
 
 ## License
 
-MIT - see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE).
